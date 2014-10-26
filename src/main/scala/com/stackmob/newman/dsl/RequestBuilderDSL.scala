@@ -59,6 +59,34 @@ trait RequestBuilderDSL {
       none
     }
 
+    /**
+    * a helper method to set a Basic Authorization header.
+    * if called more than once, the new value will override the previous one.
+    */
+    def addBasicAuth(username: String, password: String): T = {
+
+      val newAuthorizationHeader = {
+        import sun.misc.BASE64Encoder
+
+        val bytes = (username + ":" + password).getBytes
+        val encodedCredentials = new BASE64Encoder().encode(bytes)
+        val authorization: Header = ("Authorization", "Basic " + encodedCredentials)
+        authorization
+      }
+
+      // check if there is already an Authorization header to override it
+      headers match {
+        case Some(headerList) => {
+          val headersMinusAuth = headerList.list.filter(_._1 == "Authorization")
+          val newHeaders: Headers = Headers(newAuthorizationHeader :: headersMinusAuth)
+          setHeaders(newHeaders)
+        }
+        case _ => {
+          addHeaders(newAuthorizationHeader)
+        }
+      }
+    }
+
     def addHeaders(toAdd: Headers): T
     def addHeaders(toAdd: Header): T
     def addHeaders(h: Header, tail: Header*): T
