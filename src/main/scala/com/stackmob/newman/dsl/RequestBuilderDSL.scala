@@ -63,13 +63,13 @@ trait RequestBuilderDSL {
     * a helper method to set a Basic Authorization header.
     * if called more than once, the new value will override the previous one.
     */
-    def addBasicAuth(username: String, password: String): T = {
+    def addBasicAuth(username: String, password: String, charset: Charset = UTF8Charset): T = {
 
       val newAuthorizationHeader = {
-        import sun.misc.BASE64Encoder
+        import org.apache.commons.codec.binary.Base64
 
-        val bytes = (username + ":" + password).getBytes
-        val encodedCredentials = new BASE64Encoder().encode(bytes)
+        val bytes = (username + ":" + password).getBytes(charset)
+        val encodedCredentials = new String(Base64.encodeBase64(bytes))
         val authorization: Header = ("Authorization", "Basic " + encodedCredentials)
         authorization
       }
